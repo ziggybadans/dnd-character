@@ -36,7 +36,11 @@ export const HomePage: React.FC = () => {
                     Create New Character
                 </Button>
             </Box>
-            <CharacterList characters={characters} onCharacterDeleted={handleCharacterDeleted} />
+            <CharacterList 
+                characters={characters} 
+                onCharacterDeleted={handleCharacterDeleted}
+                onCharacterImported={handleCharacterDeleted}
+            />
         </Container>
     );
 }; 

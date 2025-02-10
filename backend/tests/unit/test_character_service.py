@@ -1,5 +1,6 @@
 """Unit tests for character service."""
 import pytest
+import json
 from pathlib import Path
 import shutil
 from app.models.character import Character, AbilityScores, InventoryItem
@@ -107,4 +108,42 @@ def test_delete_character(character_service, test_character):
 def test_delete_nonexistent_character(character_service):
     """Test deleting a character that doesn't exist."""
     success = character_service.delete_character("NonexistentCharacter")
-    assert not success 
+    assert not success
+
+def test_export_character_to_json(character_service, test_character):
+    """Test exporting a character to JSON format."""
+    # First save the character
+    success = character_service.save_character(test_character)
+    assert success
+
+    # Load and verify the character data
+    exported_character = character_service.load_character(test_character.name)
+    assert exported_character is not None
+    assert exported_character.model_dump() == test_character.model_dump()
+
+def test_import_character_from_json(character_service, test_character):
+    """Test importing a character from JSON format."""
+    # Create JSON data
+    character_json = test_character.model_dump_json()
+    
+    # Create a temporary file and write the JSON data
+    temp_file = Path("test_character_import.json")
+    try:
+        temp_file.write_text(character_json)
+        
+        # Import the character
+        with open(temp_file, 'r') as f:
+            imported_character = Character.model_validate_json(f.read())
+        
+        # Save the imported character
+        success = character_service.save_character(imported_character)
+        assert success
+        
+        # Verify the imported character
+        loaded_character = character_service.load_character(test_character.name)
+        assert loaded_character is not None
+        assert loaded_character.model_dump() == test_character.model_dump()
+    finally:
+        # Clean up
+        if temp_file.exists():
+            temp_file.unlink() 
