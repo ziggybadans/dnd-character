@@ -4,6 +4,7 @@ import { AnimatePresence } from 'framer-motion';
 import { HomePage } from './pages/HomePage';
 import { CreateCharacterPage } from './pages/CreateCharacterPage';
 import { EditCharacterPage } from './pages/EditCharacterPage';
+import { CharacterSheetPage } from './pages/CharacterSheetPage';
 import { theme } from './theme/theme';
 import './styles/global.css';
 
@@ -17,6 +18,7 @@ const AnimatedRoutes = () => {
         <Route path="/" element={<HomePage />} />
         <Route path="/create" element={<CreateCharacterPage />} />
         <Route path="/edit/:name" element={<EditCharacterPage />} />
+        <Route path="/sheet/:name" element={<CharacterSheetPage />} />
       </Routes>
     </AnimatePresence>
   );

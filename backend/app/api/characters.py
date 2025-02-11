@@ -98,4 +98,50 @@ async def import_character(file: UploadFile = File(...)):
             raise HTTPException(status_code=500, detail="Failed to save character")
         return success
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Invalid character data: {str(e)}") 
+        raise HTTPException(status_code=400, detail=f"Invalid character data: {str(e)}")
+
+@router.get("/{character_name}/sheet", response_model=dict)
+async def get_character_sheet(character_name: str):
+    """Get a character's sheet view with calculated values"""
+    character = character_service.load_character(character_name)
+    if not character:
+        raise HTTPException(status_code=404, detail="Character not found")
+    
+    # Calculate ability modifiers
+    def calculate_modifier(score: int) -> int:
+        return (score - 10) // 2
+    
+    ability_modifiers = {
+        "strength": calculate_modifier(character.ability_scores.strength),
+        "dexterity": calculate_modifier(character.ability_scores.dexterity),
+        "constitution": calculate_modifier(character.ability_scores.constitution),
+        "intelligence": calculate_modifier(character.ability_scores.intelligence),
+        "wisdom": calculate_modifier(character.ability_scores.wisdom),
+        "charisma": calculate_modifier(character.ability_scores.charisma)
+    }
+    
+    # Calculate proficiency bonus based on level
+    proficiency_bonus = ((character.level - 1) // 4) + 2
+    
+    return {
+        "basic_info": {
+            "name": character.name,
+            "race": character.race,
+            "class": character.character_class,
+            "level": character.level
+        },
+        "health": {
+            "max_hp": character.max_hp,
+            "current_hp": character.current_hp,
+            "temp_hp": 0  # Future feature
+        },
+        "ability_scores": {
+            score: {
+                "score": getattr(character.ability_scores, score),
+                "modifier": mod
+            }
+            for score, mod in ability_modifiers.items()
+        },
+        "proficiency_bonus": proficiency_bonus,
+        "inventory": character.inventory
+    } 

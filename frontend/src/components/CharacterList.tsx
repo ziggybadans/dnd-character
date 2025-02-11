@@ -22,6 +22,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
 import UploadIcon from '@mui/icons-material/Upload';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { characterApi } from '../services/api';
@@ -230,6 +231,16 @@ export const CharacterList: React.FC<CharacterListProps> = ({
                                             }
                                         />
                                         <ListItemSecondaryAction>
+                                            <Tooltip title="View Character Sheet">
+                                                <IconButton
+                                                    edge="end"
+                                                    aria-label="view"
+                                                    onClick={() => navigate(`/sheet/${encodeURIComponent(name)}`)}
+                                                    sx={{ mr: 1 }}
+                                                >
+                                                    <VisibilityIcon />
+                                                </IconButton>
+                                            </Tooltip>
                                             <Tooltip title="Export Character">
                                                 <IconButton
                                                     edge="end"

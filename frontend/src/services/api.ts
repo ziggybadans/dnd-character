@@ -54,5 +54,10 @@ export const characterApi = {
             }
         });
         return response.data;
+    },
+
+    async getCharacterSheet(name: string): Promise<any> {
+        const response = await axios.get(`${API_URL}/characters/${name}/sheet`);
+        return response.data;
     }
 }; 
