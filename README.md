@@ -2,7 +2,7 @@
 
 A web application for creating and managing Dungeons & Dragons 5th Edition characters.
 
-## Features (Stage 1)
+## Current Features
 
 - Create characters with race, class, ability scores, level, and inventory
 - Save characters to files
@@ -94,9 +94,9 @@ Both backend and frontend include comprehensive test suites:
 - Backend: `pytest` for unit and integration tests
 - Frontend: Jest and React Testing Library for component testing
 
-## Future Stages
+## Future Features
 
-- Stage 2: Digital character sheet
-- Stage 3: In-app dice rolling and expanded D&D 5e functionality
-- Stage 4: D&D 5e data files and homebrew support
-- Stage 5: User accounts and online character storage 
+- Digital character sheet
+- In-app dice rolling
+- D&D 5e data files and homebrew support
+- User accounts and online character storage 
