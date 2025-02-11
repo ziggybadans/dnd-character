@@ -1,53 +1,33 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { CssBaseline, ThemeProvider } from '@mui/material';
+import { AnimatePresence } from 'framer-motion';
 import { HomePage } from './pages/HomePage';
 import { CreateCharacterPage } from './pages/CreateCharacterPage';
 import { EditCharacterPage } from './pages/EditCharacterPage';
+import { theme } from './theme/theme';
+import './styles/global.css';
 
-const theme = createTheme({
-  palette: {
-    mode: 'dark',
-    primary: {
-      main: '#7e57c2',
-    },
-    secondary: {
-      main: '#ff4081',
-    },
-    background: {
-      default: '#121212',
-      paper: '#1e1e1e',
-    },
-  },
-  typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-    h4: {
-      fontWeight: 600,
-    },
-    h6: {
-      fontWeight: 500,
-    },
-  },
-  components: {
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          backgroundImage: 'none',
-        },
-      },
-    },
-  },
-});
+// Wrapper component for page transitions
+const AnimatedRoutes = () => {
+  const location = useLocation();
+  
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/create" element={<CreateCharacterPage />} />
+        <Route path="/edit/:name" element={<EditCharacterPage />} />
+      </Routes>
+    </AnimatePresence>
+  );
+};
 
 function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/create" element={<CreateCharacterPage />} />
-          <Route path="/edit/:name" element={<EditCharacterPage />} />
-        </Routes>
+        <AnimatedRoutes />
       </Router>
     </ThemeProvider>
   );

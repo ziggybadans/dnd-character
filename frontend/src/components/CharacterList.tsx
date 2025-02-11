@@ -14,13 +14,16 @@ import {
     Button,
     Box,
     Snackbar,
-    Alert
+    Alert,
+    Tooltip
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
 import UploadIcon from '@mui/icons-material/Upload';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { characterApi } from '../services/api';
 
 interface CharacterListProps {
@@ -30,13 +33,14 @@ interface CharacterListProps {
 }
 
 export const CharacterList: React.FC<CharacterListProps> = ({ 
-    characters, 
+    characters,
     onCharacterDeleted,
-    onCharacterImported 
+    onCharacterImported
 }) => {
     const navigate = useNavigate();
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
-    const [characterToDelete, setCharacterToDelete] = React.useState<string | null>(null);
+    const [characterToDelete, setCharacterToDelete] = React.useState<string>('');
     const [snackbar, setSnackbar] = React.useState<{
         open: boolean;
         message: string;
@@ -46,7 +50,6 @@ export const CharacterList: React.FC<CharacterListProps> = ({
         message: '',
         severity: 'success'
     });
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleEditCharacter = (name: string) => {
         navigate(`/edit/${encodeURIComponent(name)}`);
@@ -57,25 +60,32 @@ export const CharacterList: React.FC<CharacterListProps> = ({
         setDeleteDialogOpen(true);
     };
 
-    const handleDeleteConfirm = async () => {
-        if (characterToDelete) {
-            try {
-                await characterApi.deleteCharacter(characterToDelete);
-                setDeleteDialogOpen(false);
-                setCharacterToDelete(null);
-                if (onCharacterDeleted) {
-                    onCharacterDeleted();
-                }
-            } catch (error) {
-                console.error('Error deleting character:', error);
-                // TODO: Add error handling UI
-            }
-        }
-    };
-
     const handleDeleteCancel = () => {
         setDeleteDialogOpen(false);
-        setCharacterToDelete(null);
+        setCharacterToDelete('');
+    };
+
+    const handleDeleteConfirm = async () => {
+        try {
+            await characterApi.deleteCharacter(characterToDelete);
+            setSnackbar({
+                open: true,
+                message: 'Character deleted successfully',
+                severity: 'success'
+            });
+            if (onCharacterDeleted) {
+                onCharacterDeleted();
+            }
+        } catch (error) {
+            console.error('Error deleting character:', error);
+            setSnackbar({
+                open: true,
+                message: 'Failed to delete character',
+                severity: 'error'
+            });
+        }
+        setDeleteDialogOpen(false);
+        setCharacterToDelete('');
     };
 
     const handleExportCharacter = async (name: string) => {
@@ -123,7 +133,6 @@ export const CharacterList: React.FC<CharacterListProps> = ({
             });
         }
 
-        // Reset the file input
         if (event.target) {
             event.target.value = '';
         }
@@ -135,81 +144,170 @@ export const CharacterList: React.FC<CharacterListProps> = ({
 
     return (
         <>
-            <Paper elevation={3} sx={{ p: 3, maxWidth: 800, mx: 'auto', my: 4 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                    <Typography variant="h4">
-                        Characters
+            <Paper 
+                elevation={3} 
+                className="parchment fantasy-border"
+                sx={{ 
+                    p: 3,
+                    borderRadius: 2,
+                    position: 'relative',
+                    overflow: 'hidden'
+                }}
+            >
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                    <Typography 
+                        variant="h4" 
+                        sx={{ 
+                            display: 'flex', 
+                            alignItems: 'center',
+                            color: 'primary.main',
+                            fontFamily: '"MedievalSharp", serif'
+                        }}
+                    >
+                        <MenuBookIcon sx={{ mr: 1, fontSize: '2rem' }} />
+                        Character Roster
                     </Typography>
                     <Button
-                        variant="contained"
+                        variant="outlined"
                         color="primary"
                         startIcon={<UploadIcon />}
                         onClick={handleImportClick}
+                        className="fantasy-button"
+                        sx={{
+                            fontFamily: '"Merriweather", serif',
+                            borderWidth: 2
+                        }}
                     >
-                        Import Character
+                        Import
                     </Button>
-                    <input
-                        type="file"
-                        ref={fileInputRef}
-                        style={{ display: 'none' }}
-                        accept=".json"
-                        onChange={handleFileChange}
-                        data-testid="file-input"
-                    />
                 </Box>
+
                 {characters.length === 0 ? (
-                    <Typography variant="body1" color="text.secondary" align="center">
-                        No characters found. Create one to get started!
+                    <Typography 
+                        variant="body1" 
+                        color="text.secondary" 
+                        align="center"
+                        sx={{ 
+                            py: 4,
+                            fontFamily: '"Merriweather", serif',
+                            fontStyle: 'italic'
+                        }}
+                    >
+                        Your adventure awaits! Create your first character to begin.
                     </Typography>
                 ) : (
                     <List>
-                        {characters.map((name) => (
-                            <ListItem key={name}>
-                                <ListItemText primary={name} />
-                                <ListItemSecondaryAction>
-                                    <IconButton
-                                        edge="end"
-                                        aria-label="export"
-                                        onClick={() => handleExportCharacter(name)}
-                                        sx={{ mr: 1 }}
+                        <AnimatePresence>
+                            {characters.map((name, index) => (
+                                <motion.div
+                                    key={name}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: 20 }}
+                                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                                >
+                                    <ListItem
+                                        sx={{
+                                            mb: 1,
+                                            borderRadius: 1,
+                                            bgcolor: 'background.paper',
+                                            '&:hover': {
+                                                bgcolor: 'rgba(139, 69, 19, 0.08)',
+                                            },
+                                        }}
                                     >
-                                        <DownloadIcon />
-                                    </IconButton>
-                                    <IconButton
-                                        edge="end"
-                                        aria-label="edit"
-                                        onClick={() => handleEditCharacter(name)}
-                                        sx={{ mr: 1 }}
-                                    >
-                                        <EditIcon />
-                                    </IconButton>
-                                    <IconButton
-                                        edge="end"
-                                        aria-label="delete"
-                                        onClick={() => handleDeleteClick(name)}
-                                        color="error"
-                                    >
-                                        <DeleteIcon />
-                                    </IconButton>
-                                </ListItemSecondaryAction>
-                            </ListItem>
-                        ))}
+                                        <ListItemText 
+                                            primary={
+                                                <Typography 
+                                                    variant="h6"
+                                                    sx={{ 
+                                                        fontFamily: '"Merriweather", serif',
+                                                        fontWeight: 600
+                                                    }}
+                                                >
+                                                    {name}
+                                                </Typography>
+                                            }
+                                        />
+                                        <ListItemSecondaryAction>
+                                            <Tooltip title="Export Character">
+                                                <IconButton
+                                                    edge="end"
+                                                    aria-label="export"
+                                                    onClick={() => handleExportCharacter(name)}
+                                                    sx={{ mr: 1 }}
+                                                >
+                                                    <DownloadIcon />
+                                                </IconButton>
+                                            </Tooltip>
+                                            <Tooltip title="Edit Character">
+                                                <IconButton
+                                                    edge="end"
+                                                    aria-label="edit"
+                                                    onClick={() => handleEditCharacter(name)}
+                                                    sx={{ mr: 1 }}
+                                                >
+                                                    <EditIcon />
+                                                </IconButton>
+                                            </Tooltip>
+                                            <Tooltip title="Delete Character">
+                                                <IconButton
+                                                    edge="end"
+                                                    aria-label="delete"
+                                                    onClick={() => handleDeleteClick(name)}
+                                                    color="error"
+                                                >
+                                                    <DeleteIcon />
+                                                </IconButton>
+                                            </Tooltip>
+                                        </ListItemSecondaryAction>
+                                    </ListItem>
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
                     </List>
                 )}
+
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    style={{ display: 'none' }}
+                    accept=".json"
+                    onChange={handleFileChange}
+                    data-testid="file-input"
+                />
             </Paper>
 
             <Dialog
                 open={deleteDialogOpen}
                 onClose={handleDeleteCancel}
-                aria-labelledby="delete-dialog-title"
+                PaperProps={{
+                    className: 'parchment',
+                    sx: { borderRadius: 2 }
+                }}
             >
-                <DialogTitle id="delete-dialog-title">Delete Character</DialogTitle>
+                <DialogTitle sx={{ fontFamily: '"MedievalSharp", serif' }}>
+                    Delete Character
+                </DialogTitle>
                 <DialogContent>
-                    Are you sure you want to delete {characterToDelete}? This action cannot be undone.
+                    <Typography sx={{ fontFamily: '"Merriweather", serif' }}>
+                        Are you sure you want to delete {characterToDelete}? This action cannot be undone.
+                    </Typography>
                 </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleDeleteCancel}>Cancel</Button>
-                    <Button onClick={handleDeleteConfirm} color="error" variant="contained">
+                <DialogActions sx={{ p: 2 }}>
+                    <Button 
+                        onClick={handleDeleteCancel}
+                        sx={{ fontFamily: '"Merriweather", serif' }}
+                    >
+                        Cancel
+                    </Button>
+                    <Button 
+                        onClick={handleDeleteConfirm} 
+                        color="error" 
+                        variant="contained"
+                        className="fantasy-button"
+                        sx={{ fontFamily: '"Merriweather", serif' }}
+                    >
                         Delete
                     </Button>
                 </DialogActions>
@@ -221,7 +319,11 @@ export const CharacterList: React.FC<CharacterListProps> = ({
                 onClose={handleSnackbarClose}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             >
-                <Alert onClose={handleSnackbarClose} severity={snackbar.severity}>
+                <Alert 
+                    onClose={handleSnackbarClose} 
+                    severity={snackbar.severity}
+                    sx={{ fontFamily: '"Merriweather", serif' }}
+                >
                     {snackbar.message}
                 </Alert>
             </Snackbar>

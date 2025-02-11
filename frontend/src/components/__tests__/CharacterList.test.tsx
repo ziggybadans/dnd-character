@@ -39,7 +39,7 @@ describe('CharacterList', () => {
             </BrowserRouter>
         );
         
-        expect(screen.getByText('No characters found. Create one to get started!')).toBeInTheDocument();
+        expect(screen.getByText('Your adventure awaits! Create your first character to begin.')).toBeInTheDocument();
     });
 
     it('renders list of characters', () => {
